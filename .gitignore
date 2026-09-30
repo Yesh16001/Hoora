@@ -1,0 +1,22 @@
+# Node dependencies & builds
+node_modules/
+frontend/node_modules/
+frontend/dist/
+*.log
+
+# Python cache & virtualenv
+__pycache__/
+backend/__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# SQLite local DB
+backend/campusfind.db
+
+# IDE & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
