@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
 import { 
   GitCompare, ShieldCheck, MapPin, Calendar, Tag, 
-  User, Phone, ArrowLeft, Lock, Upload, Info
+  User, Phone, ArrowLeft, Lock, Upload, Info, Search, PlusCircle
 } from 'lucide-react';
 
 export const ItemDetailsPage = () => {
@@ -97,8 +97,8 @@ export const ItemDetailsPage = () => {
   }
 
   const isOwner = user && user.id === item.reported_by;
-  // Allow claim if user is logged in student and item is active/matched
-  const canClaim = user && user.role === 'student' && !isOwner && item.status !== 'CLAIMED' && item.status !== 'RETURNED';
+  // LOGIC FIX: A student claims ownership ONLY on FOUND items (where an item is physical & waiting to be claimed).
+  const canClaim = user && user.role === 'student' && !isOwner && item.item_type === 'FOUND' && item.status !== 'CLAIMED' && item.status !== 'RETURNED';
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -133,11 +133,18 @@ export const ItemDetailsPage = () => {
                 <GitCompare size={18} /> Run Explainable Smart Match
               </Link>
 
-              {/* CLAIM BUTTON */}
+              {/* ACTION BUTTON LOGIC:
+                  1. FOUND ITEM -> Show "Claim Ownership with Evidence" button to student
+                  2. LOST ITEM -> Show "Report Found Item" helper button to finder
+                  3. OWNER VIEW -> Show "Owner Report" badge */}
               {canClaim ? (
                 <button onClick={() => setShowClaimModal(true)} className="btn btn-success" style={{ width: '100%', justifyContent: 'center' }}>
-                  <ShieldCheck size={18} /> Claim This Item with Evidence
+                  <ShieldCheck size={18} /> Claim Ownership with Evidence
                 </button>
+              ) : item.item_type === 'LOST' && !isOwner ? (
+                <Link to={`/report?type=FOUND`} className="btn btn-success" style={{ width: '100%', justifyContent: 'center' }}>
+                  <PlusCircle size={18} /> Did You Find This Item? Report Found
+                </Link>
               ) : isOwner ? (
                 <div style={{ 
                   background: 'rgba(255, 255, 255, 0.04)', 
@@ -149,7 +156,7 @@ export const ItemDetailsPage = () => {
                   color: 'var(--text-muted)'
                 }}>
                   <Info size={14} style={{ display: 'inline', marginRight: '0.35rem' }} />
-                  You reported this item report. Use "Smart Match" above to discover candidates.
+                  You created this report. Click "Smart Match" above to discover candidate items.
                 </div>
               ) : null}
             </div>
@@ -199,7 +206,7 @@ export const ItemDetailsPage = () => {
         </div>
       </div>
 
-      {/* EVIDENCE-BASED CLAIM MODAL */}
+      {/* EVIDENCE-BASED CLAIM MODAL (Available when claiming a FOUND item) */}
       {showClaimModal && (
         <div className="modal-backdrop" onClick={() => setShowClaimModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
